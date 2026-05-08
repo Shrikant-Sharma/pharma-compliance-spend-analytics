@@ -9,7 +9,7 @@
 [![Tableau](https://img.shields.io/badge/Tableau-Public-E97627.svg)](https://public.tableau.com/app/profile/shrikant.sharma)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**🔗 [Live Interactive Dashboard on Tableau Public →]([https://public.tableau.com/shared/GFWDZJ8WF](https://public.tableau.com/views/pharma_compliance_dashboard/GeographicSpecialtyOverview?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)**
+**🔗 [Live Interactive Dashboard on Tableau Public →]([https://public.tableau.com/shared/GFWDZJ8WF](https://public.tableau.com/views/pharma_compliance_dashboard/GeographicSpecialtyOverview?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link))**
 
 ![Feature distributions](output/feature_distributions.png)
 
