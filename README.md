@@ -196,3 +196,9 @@ The published version is on [Tableau Public](https://public.tableau.com/shared/G
 - 🔗 [LinkedIn](https://www.linkedin.com/in/shrikant-sharma)
 - 🔗 [Tableau Public](https://public.tableau.com/app/profile/shrikant.sharma)
 - 🔗 [GitHub](https://github.com/Shrikant-Sharma)
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
