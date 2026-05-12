@@ -1,6 +1,6 @@
 # Pharma Compliance Spend Analytics
 
-> End-to-end compliance spend analytics on real CMS Open Payments data — anomaly detection, tiered risk classifier, and an interactive Tableau dashboard surfacing the relationships that compliance teams actually need to investigate.
+> End-to-end compliance spend analytics on real CMS Open Payments data: anomaly detection, tiered risk classifier, and an interactive Tableau dashboard surfacing the relationships that compliance teams actually need to investigate.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org)
 [![Pandas](https://img.shields.io/badge/Pandas-2.0%2B-150458.svg)](https://pandas.pydata.org)
@@ -17,11 +17,11 @@
 
 ## Why This Project
 
-The Sunshine Act requires pharmaceutical and medical-device manufacturers to publicly report every payment to U.S. physicians. The 2024 CMS Open Payments dataset contains **16.16 million records totaling $13.18 billion** — far more than any compliance team can manually review.
+The Sunshine Act requires pharmaceutical and medical-device manufacturers to publicly report every payment to U.S. physicians. The 2024 CMS Open Payments dataset contains **16.16 million records totaling $13.18 billion**. Far more than any compliance team can manually review.
 
 This project answers a question compliance teams ask every quarter: *"Of all the physicians who received payments this year, which ones should we investigate first?"*
 
-The system combines two complementary statistical methods with a compliance-specific domain rule to produce a **tiered triage queue** that focuses human review on the highest-risk relationships first — the same triage logic used in production compliance monitoring at major pharma companies, applied here to publicly available federal data.
+The system combines two complementary statistical methods with a compliance-specific domain rule to produce a **tiered triage queue** that focuses human review on the highest-risk relationships first. This same triage logic used in production compliance monitoring at major pharma companies, applied here to publicly available federal data.
 
 ---
 
@@ -75,12 +75,12 @@ The system combines two complementary statistical methods with a compliance-spec
 
 | Decision | Choice | Why |
 |---|---|---|
-| **Filter to physicians only** | Drop teaching hospitals & non-physician practitioners | Cleanest analytical unit — every physician has a unique NPI, specialty, and state. Mixing in teaching hospitals (no specialty) would corrupt specialty-level z-scores. |
+| **Filter to physicians only** | Drop teaching hospitals & non-physician practitioners | Cleanest analytical unit: every physician has a unique NPI, specialty, and state. Mixing in teaching hospitals (no specialty) would corrupt specialty-level z-scores. |
 | **10% random sample** | `frac=0.1`, `random_state=42` | The full 16M-row file doesn't fit comfortably in 16 GB RAM. A random sample preserves distributional shape, which is what z-score and IQR rely on. The same code runs on the full file with one parameter change. |
 | **Z-score within specialty** | Group by `Covered_Recipient_Specialty_1`, min 30 HCPs/specialty | Different specialties have wildly different payment baselines. Orthopedic surgeons routinely receive larger device payments than pediatricians; a single global z-score would flag entire specialties rather than unusual individuals. |
-| **Both z-score AND IQR** | Compute both, combine in tier logic | The CMS payment distribution is heavily right-skewed (median $21, max $3.2M). Right-skew inflates the standard deviation enough that even genuine outliers fall below z=2 — IQR catches what z-score misses. **Receipt: on `total_payment_value`, IQR flagged 30,223 HCPs that z-score missed.** |
+| **Both z-score AND IQR** | Compute both, combine in tier logic | The CMS payment distribution is heavily right-skewed (median $21, max $3.2M). Right-skew inflates the standard deviation enough that even genuine outliers fall below z=2.IQR catches what z-score misses. **Receipt: on `total_payment_value`, IQR flagged 30,223 HCPs that z-score missed.** |
 | **Concentration with monetary floor** | `top_company_share > 0.7 AND total_payment_value > $500` | The median `top_company_share` is 1.0 (half of all HCPs received a single payment from a single rep). A naïve concentration flag would alert on 50%+ of physicians. The $500 floor strips out the casual food-and-beverage population and leaves the relationships that actually involve compensation. |
-| **Tiered classifier (not binary)** | HIGH / MEDIUM / LOW / NONE based on signal count | A binary "flagged / not flagged" output is unusable when 17% of the population qualifies. Tiering gives the compliance team a triage queue: HIGH first (1.7% — manageable manual review), automated rules for MEDIUM/LOW. |
+| **Tiered classifier (not binary)** | HIGH / MEDIUM / LOW / NONE based on signal count | A binary "flagged / not flagged" output is unusable when 17% of the population qualifies. Tiering gives the compliance team a triage queue: HIGH first (1.7%, manageable manual review), automated rules for MEDIUM/LOW. |
 
 ---
 
@@ -90,12 +90,12 @@ The system combines two complementary statistical methods with a compliance-spec
 
 | Tier | Count | % of total | What it represents |
 |---|---|---|---|
-| **HIGH** | 4,819 | 1.67% | All three signals fire — the actionable manual-review queue |
+| **HIGH** | 4,819 | 1.67% | All three signals fire: the actionable manual-review queue |
 | **MEDIUM** | 23,423 | 8.11% | High value with concentration, or high value with high frequency |
 | **LOW** | 22,772 | 7.88% | Single statistical signal, no concentration |
 | **NONE** | 237,928 | 82.34% | Below all thresholds |
 
-### Top HIGH-risk HCPs — the headline finding
+### Top HIGH-risk HCPs: the headline finding
 
 The top 10 HIGH-risk physicians by total payment value are **all orthopedic-related specialists**, with **9 of 10 receiving over 99% of their payments from a single device manufacturer**:
 
@@ -112,16 +112,16 @@ The top 10 HIGH-risk physicians by total payment value are **all orthopedic-rela
 | 9 | Orthopaedic Surgery | WI | $302,522 | 22 | Stryker | 100% |
 | 10 | Orthopaedic Surgery | NY | $265,922 | 18 | Smith+Nephew | 86% |
 
-**Interpretation:** Orthopedic surgeons are the highest-leverage prescribers for joint-replacement and sports-medicine devices. The top 10 list reveals a structural pattern — four manufacturers (Stryker, Arthrex, Zimmer Biomet, Boston Scientific) collectively dominate orthopedic-physician compensation. This is exactly the kind of concentration the Sunshine Act was designed to make visible.
+**Interpretation:** Orthopedic surgeons are the highest-leverage prescribers for joint-replacement and sports-medicine devices. The top 10 list reveals a structural pattern. Four manufacturers (Stryker, Arthrex, Zimmer Biomet, Boston Scientific) collectively dominate orthopedic-physician compensation. This is exactly the kind of concentration the Sunshine Act was designed to make visible.
 
 ---
 
 ## Tech Stack
 
-- **Python 3.10+** — `pandas`, `numpy`, `scipy`, `matplotlib`, `seaborn`
-- **Tableau Public** — interactive dashboards
-- **Jupyter** — analysis notebook
-- **Git** — version control
+- **Python 3.10+** : `pandas`, `numpy`, `scipy`, `matplotlib`, `seaborn`
+- **Tableau Public** : interactive dashboards
+- **Jupyter** : analysis notebook
+- **Git** : version control
 
 ---
 
@@ -135,7 +135,7 @@ pharma-compliance-spend-analytics/
 │   ├── hcp_features.csv           # HCP-level features (no flags)
 │   ├── hcp_features_with_flags.csv # HCP features + risk tiers (Tableau input)
 │   └── feature_distributions.png  # Distribution visualizations
-├── data/                          # gitignored — see "How to Run"
+├── data/                          # gitignored, see "How to Run"
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -182,10 +182,10 @@ The published version is on [Tableau Public](https://public.tableau.com/shared/G
 
 ## What I Learned
 
-- **Right-skew breaks z-score.** On `total_payment_value`, z-score within specialty flagged 1.5% of HCPs — *fewer* than the 2.3% expected from a normal distribution. The standard deviation was inflated badly enough by the long tail that even genuine outliers fell below z=2. Switching to IQR caught **30,223 additional HCPs** that z-score missed.
+- **Right-skew breaks z-score.** On `total_payment_value`, z-score within specialty flagged 1.5% of HCPs, *fewer* than the 2.3% expected from a normal distribution. The standard deviation was inflated badly enough by the long tail that even genuine outliers fell below z=2. Switching to IQR caught **30,223 additional HCPs** that z-score missed.
 - **Domain rules outperform pure statistics.** A naïve "flag everyone with `top_company_share > 0.7`" rule would have flagged 50%+ of the dataset because the median share is 1.0 (most physicians who receive payments only get them from one rep). Adding a $500 monetary floor to the concentration rule cut the flag rate from 73.7% to 17.7% without losing a single HIGH-tier HCP.
-- **Tiered triage matters.** Compliance teams can't review 50,000 flags. They can review ~5,000 HIGH-tier flags. The tier system isn't theoretical polish — it's the difference between a system that gets adopted and one that gets ignored.
-- **Specialty-level structure is a finding, not a parameter.** Going in, I expected anomalies to be distributed across specialties. The data revealed that orthopedic surgery is structurally captured by four device manufacturers — a finding that wouldn't have surfaced without specialty-level grouping in the analysis.
+- **Tiered triage matters.** Compliance teams can't review 50,000 flags. They can review ~5,000 HIGH-tier flags. The tier system isn't theoretical polish. It's the difference between a system that gets adopted and one that gets ignored.
+- **Specialty-level structure is a finding, not a parameter.** Going in, I expected anomalies to be distributed across specialties. The data revealed that orthopedic surgery is structurally captured by four device manufacturers, a finding that wouldn't have surfaced without specialty-level grouping in the analysis.
 
 ---
 
@@ -201,4 +201,4 @@ The published version is on [Tableau Public](https://public.tableau.com/shared/G
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT.See [LICENSE](LICENSE).
