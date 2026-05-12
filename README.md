@@ -191,7 +191,7 @@ The published version is on [Tableau Public](https://public.tableau.com/shared/G
 
 ## Author
 
-**Shrikant Sharma** — Data Scientist with `8 years across pharma and financial services. Building production ML and grounded RAG systems for regulated industries.
+**Shrikant Sharma** — Data Scientist with ~8 years across pharma and financial services. Building production ML and grounded RAG systems for regulated industries.
 
 - 🔗 [LinkedIn](https://www.linkedin.com/in/shrikant-sharma)
 - 🔗 [Tableau Public](https://public.tableau.com/app/profile/shrikant.sharma)
