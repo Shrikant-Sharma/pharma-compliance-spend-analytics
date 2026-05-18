@@ -239,6 +239,71 @@ The published version is on [Tableau Public](https://public.tableau.com/shared/G
 
 ---
 
+## Snowflake Implementation
+
+After shipping the rule-based and ML detection systems in Pandas, I ported the 989K-row CMS sample to Snowflake to demonstrate the production analytics path. Five SQL queries — captured in [`sql/snowflake_queries.sql`](sql/snowflake_queries.sql) — reproduce the key findings from the Pandas EDA in a fully scalable cloud data warehouse.
+
+### Setup
+
+```sql
+CREATE DATABASE PHARMA_COMPLIANCE;
+CREATE SCHEMA   PHARMA_COMPLIANCE.CMS;
+
+-- payments_sampled.csv loaded via Snowsight wizard;
+-- column names normalized via ALTER TABLE RENAME COLUMN.
+-- Final table: PHARMA_COMPLIANCE.CMS.PAYMENTS_SAMPLE (988,821 rows × 10 cols)
+```
+
+Compute: default `COMPUTE_WH` (X-SMALL, auto-suspends after 10 min). The full query suite runs in under 2 seconds on the 989K-row table.
+
+### Headline finding — orthopaedic surgery's manufacturer capture
+
+Top manufacturers by total payments within Orthopaedic Surgery, with each one's share of the specialty's total spend:
+
+| Manufacturer | Physicians paid | Total paid (USD) | Share of orthopaedic spend |
+|---|---:|---:|---:|
+| Arthrex, Inc. | 1,629 | $10,531,091 | **21.4%** |
+| Stryker Corporation | 4,036 | $8,943,117 | **18.1%** |
+| Zimmer Biomet Holdings | 1,257 | $5,778,445 | **11.7%** |
+| Smith+Nephew, Inc. | 1,520 | $4,213,432 | **8.5%** |
+| DePuy Synthes Products | 117 | $3,951,145 | 8.0% |
+| Globus Medical | 691 | $1,495,449 | 3.0% |
+| Medtronic, Inc. | 636 | $1,431,317 | 2.9% |
+
+**Top 4 manufacturers capture 59.7% of all orthopaedic surgery payments. Top 5 capture 67.7%.** No other specialty in the dataset shows structural concentration at this magnitude.
+
+Notable outlier — **DePuy Synthes pays only 117 physicians but moves $3.95M** ($33,770 per physician, the highest concentration-per-physician of any major orthopaedic manufacturer). Arthrex spreads $10.5M across 1,629 physicians ($6,464 per physician). Same specialty, fundamentally different go-to-market patterns.
+
+![Snowflake query: orthopaedic capture](output/figures/snowflake_orthopaedic_capture.png)
+
+### Other findings reproduced in SQL
+
+**Cross-industry manufacturer dispersion:** Stryker leads total payments with only 14,812 transactions; AbbVie has 93,880 transactions (6× more) but lower total. Classic device-royalty vs pharma-marketing structural difference.
+
+**Specialty disparity:** Orthopaedic Surgery is #1 in total spend with 8,901 physicians; Internal Medicine has 41,349 physicians (4.6× more) but ranks below in total dollars. Average per physician differs by an order of magnitude.
+
+**Payment distribution shape (988,821 transactions):**
+
+| Statistic | Value |
+|---|---:|
+| Mean payment | $220.87 |
+| Median (P50) | $21.26 |
+| P75 | $33.11 |
+| P90 | $137.73 |
+| P95 | $458.30 |
+| P99 | $3,955.00 |
+| Max single payment | $3,199,444.94 |
+
+Mean is roughly 10× median — extreme right skew. This data shape justifies the rule-based system's use of IQR (Q3 + 1.5·IQR) alongside z-score: the long tail inflates standard deviation enough to hide moderate outliers from z-score detection. SQL percentiles confirm what Pandas distribution analysis showed.
+
+### Why Snowflake?
+
+Pandas handles the 989K-row sample comfortably in memory. The full 16M-row dataset doesn't — and a production compliance system would run on the full data across multiple program years, joined to investigation outcomes, refreshed weekly. Snowflake is the canonical platform for that workload in regulated industries: decoupled compute and storage, standard SQL (queries portable to Postgres / BigQuery / Databricks SQL with minor changes), and auto-suspending warehouses that bill only for active compute. The implementation here proves the migration path: same logic, scaled platform.
+
+![Snowflake Database Explorer](output/figures/snowflake_database_explorer.png)
+
+---
+
 ## What I Learned
 
 - **Right-skew breaks z-score.** On `total_payment_value`, z-score within specialty flagged 1.5% of HCPs, *fewer* than the 2.3% expected from a normal distribution. The standard deviation was inflated badly enough by the long tail that even genuine outliers fell below z=2. Switching to IQR caught **30,223 additional HCPs** that z-score missed.
