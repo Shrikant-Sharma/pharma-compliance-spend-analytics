@@ -95,7 +95,66 @@ The system combines two complementary statistical methods with a compliance-spec
 | **LOW** | 22,772 | 7.88% | Single statistical signal, no concentration |
 | **NONE** | 237,928 | 82.34% | Below all thresholds |
 
-### Top HIGH-risk HCPs: the headline finding
+---
+
+## ML Anomaly Detection Layer — Isolation Forest
+
+After shipping the rule-based detection system, I added an unsupervised ML layer to answer a question every compliance team eventually asks: *what does each method catch that the other misses?*
+
+### Method
+
+- **Model:** Isolation Forest (`n_estimators=200`, `contamination=0.02`, `random_state=42`) on the same 5 engineered features used by the rules.
+- **Why this model:** unsupervised (CMS provides no labels), multivariate (catches feature *combinations* rules can't express), tree-based (no feature scaling required given the wildly different feature scales).
+- **Why `contamination=0.02`:** matched to the rule-based HIGH rate (1.67%) so the flag volumes are comparable. Identical contamination would over-anchor; 0.02 gives ML modest room to disagree while keeping the comparison interpretable.
+
+### Results — agreement between methods
+
+| | ML flagged | ML inlier | Total |
+|---|---|---|---|
+| **Rule HIGH** | 1,600 | 3,219 | 4,819 |
+| **Not rule HIGH** | 4,179 | 279,944 | 284,123 |
+| **Total** | 5,779 | 283,163 | 288,942 |
+
+| Metric | Value |
+|---|---|
+| Jaccard similarity | 0.178 |
+| % of rule-HIGH also flagged by ML | 33.2% |
+| % of ML flags also rule-HIGH | 27.7% |
+| Cohen's kappa (chance-corrected agreement) | 0.289 |
+
+### Finding — Three distinct compliance archetypes
+
+The disagreement is the finding. Methods catch structurally different patterns:
+
+| Archetype | Group | n | Median total | Median avg pmt | Top company share | Typical specialties |
+|---|---|---|---|---|---|---|
+| **Captured specialist** | BOTH | 1,600 | $13,742 | $828 | 0.93 | Orthopedic surgery, dental |
+| **Captured generalist** | RULE_ONLY | 3,219 | $3,070 | $254 | 0.91 | General practice, cardiology, oncology, pediatrics |
+| **Industry consultant** | ML_ONLY | 4,179 | $13,111 | **$1,529** | 0.63 | Dermatology, oncology, rheumatology, advanced cardiology |
+
+**1. Captured specialists (BOTH).** Both methods agree on the unambiguous compliance leads — high-volume device-manufacturer relationships in orthopedic surgery and dental. Top 5 most-anomalous-by-ML in this group are dominated by Stryker, Zimmer Biomet, Skeletal Dynamics, and Align Technology. This is the consensus triage queue.
+
+**2. Captured generalists (RULE_ONLY).** Rules surface 3,219 physicians outside high-spend specialties who receive modest absolute totals (~$3K median) but heavily concentrated payments from a single manufacturer (≥91% top share). ML doesn't isolate them because in absolute multivariate space they look ordinary. **This is precisely why pure-ML is risky for compliance** — small-dollar captured-prescriber patterns are exactly the cases where the *pattern* matters more than the magnitude. Rules win this category.
+
+**3. Industry consultants (ML_ONLY).** ML surfaces 4,179 physicians who earn high totals across *many* manufacturers — diversified industry influence rather than single-firm capture. Median average payment is $1,529, the highest of any group, and ~63% top-company-share means most payments come from secondary sources. Rules cannot catch them because the concentration signal explicitly excludes diversified physicians. ML catches them via the combination: high magnitude + high per-payment + multi-state + diversified manufacturers is an isolated combination in feature space. This is the multivariate signal pure-rules cannot express.
+
+### What the visualization shows
+
+![Three compliance archetypes](output/figures/rules_vs_ml_archetypes.png)
+
+X-axis is concentration (0 = diversified, 1 = single manufacturer). Y-axis is total payment value, log scale. BOTH (red) and RULE_ONLY (blue) cluster on the right — concentrated relationships. **ML_ONLY (orange) sits on the upper LEFT** — physicians with large totals and diversified manufacturer mix. That left-side cluster is the regime no rule-based system can reach.
+
+### Production recommendation
+
+A real compliance system should run both detectors and triage each archetype separately:
+
+- **BOTH** → highest priority, both signals fire.
+- **RULE_ONLY** → review for captured-prescriber patterns in low-spend specialties.
+- **ML_ONLY** → review for industry-consultant patterns; candidates for *new rule definitions* (e.g., "diversified high-magnitude relationships").
+
+Either method alone misses ~67–72% of what the other catches. The pair is strictly stronger.
+
+### Top HIGH-risk HCPs — the headline finding
 
 The top 10 HIGH-risk physicians by total payment value are **all orthopedic-related specialists**, with **9 of 10 receiving over 99% of their payments from a single device manufacturer**:
 
