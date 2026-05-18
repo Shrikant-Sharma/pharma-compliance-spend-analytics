@@ -304,6 +304,44 @@ Pandas handles the 989K-row sample comfortably in memory. The full 16M-row datas
 
 ---
 
+## PySpark Implementation
+
+Third execution backend for the same HCP feature-engineering pipeline. Together with Pandas (notebook 01) and Snowflake SQL ([`sql/snowflake_queries.sql`](sql/snowflake_queries.sql)), this completes a deliberate demonstration of platform-fit reasoning for compliance analytics at three different scales.
+
+| Platform | Best for | This project's role |
+|---|---|---|
+| **Pandas** | In-memory datasets, fast iteration | Built the rule-based and ML detection layers |
+| **Snowflake** | Cloud SQL, multi-user analytics | Production analytics path; recruiters can verify with SQL |
+| **PySpark** | Distributed ETL, multi-TB pipelines | Demonstrates the migration path beyond single-machine limits |
+
+Notebook: [`notebooks/03_pyspark_pipeline.ipynb`](notebooks/03_pyspark_pipeline.ipynb)
+
+### What the notebook demonstrates
+
+**1. DataFrame API and Spark SQL parity.** The 5 HCP-level features are computed two ways — once with `groupBy().agg()` + `F.max_by()` for top-company-per-NPI, once with a single Spark SQL query using `ROW_NUMBER() OVER (PARTITION BY ...)` window functions. Both produce 288,942 rows with identical values. Same query plan under the hood; the choice between APIs is team preference, not capability.
+
+**2. Lazy evaluation visualized.** `.explain(mode="formatted")` prints the full physical query plan before execution — HashAggregate stages, hashpartitioning shuffles, BroadcastHashJoins, and AQE optimizations the engine selected at runtime. Spark optimizes the entire pipeline before running anything, which Pandas can't do because it executes line-by-line.
+
+**3. Caching speedup.** Materializing the HCP DataFrame and re-counting yields a ~7× speedup on the cached version (1.6s → 0.225s) for this dataset. On multi-GB tables the speedup is typically 50–500× — the reason production Spark pipelines cache reusable intermediates aggressively.
+
+**4. Cross-platform equivalence verified.** The PySpark output is row-level joined to the Pandas pipeline's output and compared HCP-by-HCP across all five features:
+
+| Feature | Match |
+|---|---|
+| `payment_frequency` | 100.00% exact |
+| `n_unique_states` | 100.00% exact |
+| `avg_payment_size` | 100.00% at 1e-4 tolerance |
+| `top_company_share` | 100.00% at 1e-4 tolerance |
+| `total_payment_value` | 86.25% exact / 100% within floating-point precision |
+
+The 13.75% of HCPs that don't match exactly on `total_payment_value` differ by sub-penny amounts — IEEE 754 floating-point addition isn't strictly associative, and PySpark sums the per-HCP payments in a different partition order than Pandas. Rounding to cents (the natural representation for dollar values) collapses all 288,942 rows to exact match. **The top 5 highest-paid HCPs are bit-for-bit identical** between platforms, confirming practical equivalence.
+
+### Why a third implementation matters
+
+The interview question this answers: *"What do you do when Pandas isn't enough?"* This notebook is the demonstrated answer — same logic, distributed execution, with the migration receipts. Each engineering decision (lazy plan inspection, partition sizing, caching, DataFrame-vs-SQL API choice) is exercised on real data with measurable outcomes.
+
+---
+
 ## What I Learned
 
 - **Right-skew breaks z-score.** On `total_payment_value`, z-score within specialty flagged 1.5% of HCPs, *fewer* than the 2.3% expected from a normal distribution. The standard deviation was inflated badly enough by the long tail that even genuine outliers fell below z=2. Switching to IQR caught **30,223 additional HCPs** that z-score missed.
