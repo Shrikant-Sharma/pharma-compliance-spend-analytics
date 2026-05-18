@@ -2,12 +2,12 @@
 
 > End-to-end compliance spend analytics on real CMS Open Payments data: anomaly detection, tiered risk classifier, and an interactive Tableau dashboard surfacing the relationships that compliance teams actually need to investigate.
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org)
-[![Pandas](https://img.shields.io/badge/Pandas-2.0%2B-150458.svg)](https://pandas.pydata.org)
-![Scikit-learn](https://img.shields.io/badge/Scikit--learn-F7931E?style=flat&logo=scikit-learn&logoColor=white)
-[![PySpark](https://img.shields.io/badge/PySpark-4.1%2B-E25A1C.svg)](https://spark.apache.org/docs/latest/api/python/)
-[![Snowflake](https://img.shields.io/badge/Snowflake-Cloud-29B5E8.svg)](https://www.snowflake.com)
-[![Tableau](https://img.shields.io/badge/Tableau-Public-E97627.svg)](https://public.tableau.com/app/profile/shrikant.sharma)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
+[![Pandas](https://img.shields.io/badge/Pandas-2.0%2B-150458.svg?logo=pandas&logoColor=white)](https://pandas.pydata.org)
+[![Scikit-learn](https://img.shields.io/badge/Scikit--learn-1.4%2B-F7931E.svg?logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
+[![PySpark](https://img.shields.io/badge/PySpark-4.1%2B-E25A1C.svg?logo=apachespark&logoColor=white)](https://spark.apache.org/docs/latest/api/python/)
+[![Snowflake](https://img.shields.io/badge/Snowflake-Cloud-29B5E8.svg?logo=snowflake&logoColor=white)](https://www.snowflake.com)
+[![Tableau](https://img.shields.io/badge/Tableau-Public-E97627.svg?logo=tableau&logoColor=white)](https://public.tableau.com/app/profile/shrikant.sharma)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **🔗 [Live Interactive Dashboard on Tableau Public →](https://public.tableau.com/views/pharma_compliance_dashboard/GeographicSpecialtyOverview?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)**
