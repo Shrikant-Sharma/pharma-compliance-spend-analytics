@@ -22,7 +22,7 @@ The Sunshine Act requires pharmaceutical and medical-device manufacturers to pub
 
 This project answers a question compliance teams ask every quarter: *"Of all the physicians who received payments this year, which ones should we investigate first?"*
 
-The system combines two complementary statistical methods with a compliance-specific domain rule to produce a **tiered triage queue** that focuses human review on the highest-risk relationships first. This same triage logic used in production compliance monitoring at major pharma companies, applied here to publicly available federal data.
+The system combines two complementary statistical methods with a compliance-specific domain rule to produce a **tiered triage queue** that focuses human review on the highest-risk relationships first. This is the same triage logic used in production compliance monitoring at major pharma companies, applied here to publicly available federal data.
 
 ---
 
@@ -46,7 +46,7 @@ The system combines two complementary statistical methods with a compliance-spec
                ▼
 ┌─────────────────────────────┐
 │ HCP-level table             │
-│ ~289K HCPs × 5 features     │
+│ ~288K HCPs × 5 features     │
 │ - total_payment_value       │
 │ - payment_frequency         │
 │ - avg_payment_size          │
@@ -79,7 +79,7 @@ The system combines two complementary statistical methods with a compliance-spec
 | **Filter to physicians only** | Drop teaching hospitals & non-physician practitioners | Cleanest analytical unit: every physician has a unique NPI, specialty, and state. Mixing in teaching hospitals (no specialty) would corrupt specialty-level z-scores. |
 | **10% random sample** | `frac=0.1`, `random_state=42` | The full 16M-row file doesn't fit comfortably in 16 GB RAM. A random sample preserves distributional shape, which is what z-score and IQR rely on. The same code runs on the full file with one parameter change. |
 | **Z-score within specialty** | Group by `Covered_Recipient_Specialty_1`, min 30 HCPs/specialty | Different specialties have wildly different payment baselines. Orthopedic surgeons routinely receive larger device payments than pediatricians; a single global z-score would flag entire specialties rather than unusual individuals. |
-| **Both z-score AND IQR** | Compute both, combine in tier logic | The CMS payment distribution is heavily right-skewed (median $21, max $3.2M). Right-skew inflates the standard deviation enough that even genuine outliers fall below z=2.IQR catches what z-score misses. **Receipt: on `total_payment_value`, IQR flagged 30,223 HCPs that z-score missed.** |
+| **Both z-score AND IQR** | Compute both, combine in tier logic | The CMS payment distribution is heavily right-skewed (median $21, max $3.2M). Right-skew inflates the standard deviation enough that even genuine outliers fall below z=2. IQR catches what z-score misses. **Receipt: on `total_payment_value`, IQR flagged 30,223 HCPs that z-score missed.** |
 | **Concentration with monetary floor** | `top_company_share > 0.7 AND total_payment_value > $500` | The median `top_company_share` is 1.0 (half of all HCPs received a single payment from a single rep). A naïve concentration flag would alert on 50%+ of physicians. The $500 floor strips out the casual food-and-beverage population and leaves the relationships that actually involve compensation. |
 | **Tiered classifier (not binary)** | HIGH / MEDIUM / LOW / NONE based on signal count | A binary "flagged / not flagged" output is unusable when 17% of the population qualifies. Tiering gives the compliance team a triage queue: HIGH first (1.7%, manageable manual review), automated rules for MEDIUM/LOW. |
 
@@ -257,11 +257,11 @@ CREATE SCHEMA   PHARMA_COMPLIANCE.CMS;
 
 Compute: default `COMPUTE_WH` (X-SMALL, auto-suspends after 10 min). The full query suite runs in under 2 seconds on the 989K-row table.
 
-### Headline finding — orthopaedic surgery's manufacturer capture
+### Headline finding — orthopedic surgery's manufacturer capture
 
 Top manufacturers by total payments within Orthopaedic Surgery, with each one's share of the specialty's total spend:
 
-| Manufacturer | Physicians paid | Total paid (USD) | Share of orthopaedic spend |
+| Manufacturer | Physicians paid | Total paid (USD) | Share of orthopedic spend |
 |---|---:|---:|---:|
 | Arthrex, Inc. | 1,629 | $10,531,091 | **21.4%** |
 | Stryker Corporation | 4,036 | $8,943,117 | **18.1%** |
@@ -271,9 +271,9 @@ Top manufacturers by total payments within Orthopaedic Surgery, with each one's 
 | Globus Medical | 691 | $1,495,449 | 3.0% |
 | Medtronic, Inc. | 636 | $1,431,317 | 2.9% |
 
-**Top 4 manufacturers capture 59.7% of all orthopaedic surgery payments. Top 5 capture 67.7%.** No other specialty in the dataset shows structural concentration at this magnitude.
+**Top 4 manufacturers capture 59.7% of all orthopedic surgery payments. Top 5 capture 67.7%.** No other specialty in the dataset shows structural concentration at this magnitude.
 
-Notable outlier — **DePuy Synthes pays only 117 physicians but moves $3.95M** ($33,770 per physician, the highest concentration-per-physician of any major orthopaedic manufacturer). Arthrex spreads $10.5M across 1,629 physicians ($6,464 per physician). Same specialty, fundamentally different go-to-market patterns.
+Notable outlier — **DePuy Synthes pays only 117 physicians but moves $3.95M** ($33,770 per physician, the highest concentration-per-physician of any major orthopedic manufacturer). Arthrex spreads $10.5M across 1,629 physicians ($6,464 per physician). Same specialty, fundamentally different go-to-market patterns.
 
 ![Snowflake query: orthopaedic capture](output/figures/snowflake_orthopaedic_capture.png)
 
@@ -364,4 +364,4 @@ The interview question this answers: *"What do you do when Pandas isn't enough?"
 
 ## License
 
-MIT.See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
